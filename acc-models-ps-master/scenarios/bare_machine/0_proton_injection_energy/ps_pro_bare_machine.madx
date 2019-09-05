@@ -1,0 +1,136 @@
+/**********************************************************************************
+*
+* MAD-X input script for the flat bottom optics of the bare machine.
+* 11/06/2019 - Alexander Huschauer
+************************************************************************************/
+ 
+/******************************************************************
+ * Energy and particle type definition
+ ******************************************************************/
+
+BEAM, PARTICLE=PROTON, PC = 2.14;
+BRHO      := BEAM->PC * 3.3356;
+
+/******************************************************************
+ * Call lattice files
+ ******************************************************************/
+
+call, file="../../../ps_mu.seq";
+call, file="../../../ps_ss.seq";
+call, file="../../../ps.str";
+call, file="./ps_pro_bare_machine.str";
+call, file="../../../macros.ptc";
+
+/******************************************************************
+ * PTC Twiss
+ ******************************************************************/
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,normal,no=4, file = './ps_pro_bare_machine.tfs';
+ptc_end;
+
+WRITE, TABLE=NONLIN, FILE="nonlin.dat";
+
+value, table(nonlin,value,7);
+value, table(nonlin,value,7)*beam->beta;
+value, table(nonlin,value,7)*beam->beta*beam->beta;
+
+stop;
+
+/******************************************************************
+ * Non-linear chromaticity 
+ ******************************************************************/
+
+use, sequence=PS;
+
+PTC_twiss(dp0) : macro={
+        ptc_create_universe;
+        ptc_create_layout, time=false, model=2, exact=true, method=6, nst=5;
+        ptc_twiss, closed_orbit, icase=56, no=4, deltap=dp0, table;
+        }
+
+create, table=mytable, column = dp0, qx, qy;
+
+qx := table(ptc_twiss_summary, q1);
+qy := table(ptc_twiss_summary, q2);
+
+dp0 = -0.01;
+dp0_max = 0.011;
+
+while (dp0 <= dp0_max){
+        exec, PTC_twiss(dp0);
+        fill, table = mytable; write, table=mytable, file = './ps_pro_bare_machine_chromaticity_summary.out';
+        dp0 = dp0 + 0.001;
+}
+
+stop;
+
+/******************************************************************
+ * PTC Twiss
+ ******************************************************************/
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,normal,no=4, file = './ps_pro_bare_machine.tfs';
+ptc_end;
+
+WRITE, TABLE=NONLIN, FILE="nonlin.dat";
+
+stop;
+
+! obtain smooth optics functions by slicing the elements
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4,slice_magnets=true, file = './ps_pro_bare_machine_interpolated.tfs';
+ptc_end;
+
+/******************************************************************
+ *                Non-linear chromaticity matching
+ *
+ *      Values based on non-linear chromaticity measurement at  
+ *                flat bottom recorded on 09.04.2018
+ ******************************************************************/
+
+!2nd dedree polynomial
+!Qx=0.2454 - 5.3465x + 24.0383x^2
+!Qy=0.2837 - 7.1631x + 42.3603x^2
+
+Qx0 :=  0.2454;
+Qx1 := -5.3465;
+Qx2 := 24.0383;
+
+Qy0 :=  0.2837;
+Qy1 := -7.1631;
+Qy2 := 42.3603;
+
+use, sequence=PS;
+match,use_macro;
+        vary, name = K1_F;
+        vary, name = K1_D;
+        vary, name = MPK2;
+        vary, name = MPK2_J;
+        vary, name = MPK3_F;
+        vary, name = MPK3_D;
+        use_macro, name = ptc_chrom_macro;
+        constraint, expr = qx0 = 1*Qx0;
+	constraint, expr = qy0 = 1*Qy0;
+        constraint, expr = qx1 = 1*Qx1;	
+        constraint, expr = qy1 = 1*Qy1;	
+        constraint, expr = qx2 = 2*Qx2;
+        constraint, expr = qy2 = 2*Qy2;
+jacobian,calls=50000,bisec=3;
+ENDMATCH;
+
+Assign, echo="./ps_pro_bare_machine_matching.dat";
+value, K1_F, K1_D;
+value, MPK2, MPK2_J;
+value, MPK3_F, MPK3_D;
+Assign, echo=terminal;
+

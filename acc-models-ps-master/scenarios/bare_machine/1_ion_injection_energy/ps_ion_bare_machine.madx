@@ -1,0 +1,160 @@
+/**********************************************************************************
+*
+* MAD-X input script for the bare machine optics of the LHC ion cycle.
+* 22/08/2019 - Alexander Huschauer
+************************************************************************************/
+ 
+/******************************************************************
+ * Energy and particle type definition
+ ******************************************************************/
+
+!BEAM, PARTICLE=Pb54, MASS=0.931494*(207.947/208.), CHARGE=54./208., ENERGY=0.931494*(207.947/208.) + .072;
+!BRHO      := BEAM->PC * 3.3356 * 208./54.;
+
+! 0.072 GeV/n = Ekin = Etotal-E0 => mc^2-E0 = SQRT[E0^2+(p*c)^2]-E0
+! i.e. p=0.373 GeV/c, which corresponds to a magnetic rigidity of 4.8Tm [=208*0.373/(54*0.2998)]
+
+A      = 208;    ! sum of protons and neutrons
+Beam, particle=lead, pc=0.3733*A, charge=54, mass=A*0.931494;
+
+/******************************************************************
+ * Call lattice files
+ ******************************************************************/
+
+call, file="../../../ps_mu.seq";
+call, file="../../../ps_ss.seq";
+call, file="../../../ps.str";
+call, file="./ps_ion_bare_machine.str";
+call, file="../../../macros.ptc";
+
+/******************************************************************
+ * PTC Twiss
+ ******************************************************************/
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4, file = './ps_ion_bare_machine.tfs';
+ptc_end;
+
+stop;
+
+! obtain smooth optics functions by slicing the elements
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4,slice_magnets=true, file = './ps_ion_bare_machine_interpolated.tfs';
+ptc_end;
+
+stop;
+
+/******************************************************************
+ *                   Tune matching with SBENDs
+ *
+ * Values based on non-linear chromaticity measurement at flat bottom  
+ *                    recorded on 07.12.2018
+ ******************************************************************/
+
+! Qx = 0.24674 + -5.33099*x + -75.67066*x^2
+Qx := 0.24674;
+Qxp := -5.33099;
+Qxp2 := -75.67066;
+
+! Qy = 0.27913 + -7.22147*x + 125.01952*x^2
+Qy := 0.27913;
+Qyp := -7.22147;
+Qyp2 := 125.01952;
+
+use, sequence=PS;
+match,use_macro;
+        vary, name = k1_f;
+        vary, name = k1_d;
+        use_macro, name = ptc_twiss_tune_macro;
+        constraint, expr = table(ptc_twiss_summary,Q1) = Qx;
+        constraint, expr = table(ptc_twiss_summary,Q2) = Qy;
+jacobian,calls=50000,bisec=3;
+ENDMATCH;
+
+Assign, echo="./ps_ion_bare_machine_tune_matching.dat";
+value, k1_f, k1_d;
+Assign, echo=terminal;
+
+/******************************************************************
+ *                Chromaticity matching with SBENDs
+ *
+ * Values based on non-linear chromaticity measurement at flat bottom  
+ *                    recorded on 07.12.2018
+ ******************************************************************/
+
+use, sequence=PS;
+match,use_macro;
+        vary, name = MPK2;
+        vary, name = MPK2_J;
+        use_macro, name = ptc_twiss_chroma_macro;
+        constraint, expr = table(ptc_twiss_summary,DQ1) = Qxp;
+        constraint, expr = table(ptc_twiss_summary,DQ2) = Qyp;
+jacobian,calls=50000,bisec=3;
+ENDMATCH;
+
+Assign, echo="./ps_ion_bare_machine_chrom_matching.dat";
+value, MPK2, MPK2_J;
+Assign, echo=terminal;
+
+/******************************************************************
+ *       Second order chromaticity matching with multipoles
+ *
+ * Values based on non-linear chromaticity measurement at flat bottom  
+ *                    recorded on 07.12.2018
+ ******************************************************************/
+
+! Qx = 0.24674 + -5.33099*x + -75.67066*x^2
+Qx := 0.24674;
+Qxp := -5.33099;
+Qxp2 := -75.67066;
+
+! Qy = 0.27913 + -7.22147*x + 125.01952*x^2
+Qy := 0.27913;
+Qyp := -7.22147;
+Qyp2 := 125.01952;
+
+use, sequence=PS;
+match,use_macro;
+        vary, name = MPK3_F;
+        vary, name = MPK3_D;
+        use_macro, name = ptc_twiss_Q2P_macro;
+        constraint, expr = table(nonlin,value,7) = Qxp2;
+        constraint, expr = table(nonlin,value,15) = Qyp2;
+jacobian,calls=50000,bisec=3;
+ENDMATCH;
+
+Assign, echo="./ps_ion_bare_machine_q2p_matching.dat";
+value, MPK3_F, MPK3_D;
+Assign, echo=terminal;
+
+/******************************************************************
+ * Non-linear chromaticity 
+ ******************************************************************/
+
+use, sequence=PS;
+
+PTC_twiss(dp0) : macro={
+        ptc_create_universe;
+        ptc_create_layout, time=false, model=2, exact=true, method=6, nst=5;
+        ptc_twiss, closed_orbit, icase=56, no=4, deltap=dp0, table;
+        }
+
+create, table=mytable, column = dp0, qx, qy;
+
+qx := table(ptc_twiss_summary, q1);
+qy := table(ptc_twiss_summary, q2);
+
+dp0 = -0.003;
+dp0_max = 0.006;
+
+while (dp0 <= dp0_max){
+        exec, PTC_twiss(dp0);
+        fill, table = mytable; write, table=mytable, file = './ps_ion_bare_machine_chromaticity_summary.out';
+        dp0 = dp0 + 0.001;
+}

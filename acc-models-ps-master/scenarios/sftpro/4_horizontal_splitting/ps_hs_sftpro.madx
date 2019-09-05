@@ -1,0 +1,76 @@
+/**********************************************************************************
+*
+* MAD-X input script for the MTE splitting configuration at 800 ms cycle time
+* on the SFTPRO cycle.
+* 14/08/2019 - Alexander Huschauer
+************************************************************************************/
+ 
+/******************************************************************
+ * Energy and particle type definition
+ ******************************************************************/
+
+BEAM, PARTICLE=PROTON, PC = 14.;
+BRHO      := BEAM->PC * 3.3356;
+
+/******************************************************************
+ * Call lattice files
+ ******************************************************************/
+
+call, file="../../../ps_mu.seq";
+call, file="../../../ps_ss.seq";
+call, file="../../../ps.str";
+call, file="./ps_hs_sftpro.str";
+call, file="../../../macros.ptc";
+
+/******************************************************************
+ * Define fourfold PS sequence for Twiss in the islands
+ ******************************************************************/
+
+use, sequence = PS;
+twiss;
+PSL = table(summ, length);
+
+PS4: SEQUENCE, L = 4*PSL, refer = entry;
+PS, at = 0.0;
+PS, at = PSL;
+PS, at = 2*PSL;
+PS, at = 3*PSL;
+ENDSEQUENCE;
+
+/******************************************************************
+ * PTC Twiss for the core
+ ******************************************************************/
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true;
+ptc_twiss,closed_orbit,icase=56,no=4, file = './ps_hs_sftpro.tfs';
+ptc_end;
+
+stop;
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true;
+ptc_twiss,closed_orbit,icase=56,slice_magnets=true,no=4, file = './ps_hs_sftpro_interpolated.tfs';
+ptc_end;
+
+/******************************************************************
+ * PTC Twiss for the islands
+ ******************************************************************/
+
+use, sequence=PS4;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true;
+ptc_twiss,closed_orbit,icase=56,no=4, file = './ps_hs_sftpro_islands.tfs', x = 0.032;
+ptc_end;
+
+use, sequence=PS4;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true;
+ptc_twiss,closed_orbit,icase=56,slice_magnets=true,no=4, file = './ps_hs_sftpro_islands_interpolated.tfs', x = 0.032;
+ptc_end;

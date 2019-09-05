@@ -1,0 +1,25 @@
+/*******************************************************************************
+**                        SBEND K1 and multipoles in MUs                      **
+*******************************************************************************/
+! 
+! step 1): use the integrated normalized multipoles from the magnetic model at 5386 A. 
+! The field obtained in simulations doesn't match the measured one, but using the normalized harmonics should be close enough.
+! step 2): match the measured non-linear chromaticity: sextupole components in the SBENDs (PFW-like) and octupole components with the multipoles
+
+k1_f               =      0.05697956296 ;
+k1_d               =     -0.05703947106 ;
+
+k2_f               =      0.03642111353 ;
+k2_d               =    -0.005540725526 ;
+
+/********  from the magnetic model at 5386 A *********/
+
+mpk2               =     -0.026860752039551218 ;
+mpk2_j             =     -0.022490759823338775 ;
+
+/*****************************************************/
+
+mpk3_f             =      -0.6194387414 ;
+mpk3_d             =       0.7167543194 ;
+
+RETURN;

@@ -1,0 +1,28 @@
+/*******************************************************************************
+**                        SBEND K1 and multipoles in MUs                      **
+*******************************************************************************/
+! 
+! step 1): use same values as for the bare machine at p = 2.14 GeV/c. 
+! TODO: Update using simulation results from the magnetic model at 2666 A.
+! step 2): match the measured non-linear chromaticity with multipoles and SBENDs
+
+/*********************************
+* values from the bare machine
+k1_f               =   0.057053 ;
+k1_d               =  -0.057116 ;
+mpk2               =  -0.018580 ;
+mpk2_j             =   0.039347 ;
+mpk3_f             =   0.058110 ;
+mpk3_d             =  -0.131970 ;
+**********************************/
+
+k1_f               =      0.05711598448 ;
+k1_d               =     -0.05720017661 ;
+k2_f               =      0.02803449534 ;
+k2_d               =     -0.03354591134 ;
+mpk2               =           -0.01858 ;
+mpk2_j             =           0.039347 ;
+mpk3_f             =      -0.1108689667 ;
+mpk3_d             =      -0.2018337555 ;
+
+RETURN;

@@ -1,0 +1,125 @@
+/**********************************************************************************
+*
+* MAD-X input script for the flat top optics of the AD cycle.
+* 16/07/2019 - Alexander Huschauer
+************************************************************************************/
+ 
+/******************************************************************
+ * Energy and particle type definition
+ ******************************************************************/
+
+BEAM, PARTICLE=PROTON, PC = 26.40;
+BRHO      := BEAM->PC * 3.3356;
+
+/******************************************************************
+ * Call lattice files
+ ******************************************************************/
+
+call, file="../../../ps_mu.seq";
+call, file="../../../ps_ss.seq";
+call, file="../../../ps.str";
+call, file="./ps_bef_ext_ad.str";
+call, file="../../../macros.ptc";
+
+/******************************************************************
+ * PTC Twiss
+ ******************************************************************/
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4, file = './ps_bef_ext_ad.tfs';
+ptc_end;
+
+stop;
+
+! obtain smooth optics functions by slicing the elements
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4,slice_magnets=true, file = './ps_bef_ext_ad_interpolated.tfs';
+ptc_end;
+
+/******************************************************************
+ *                Non-linear chromaticity matching
+ *
+ *    Values based on non-linear chromaticity measurement above   
+ *                transition recorded on 29.10.2018
+ ******************************************************************/
+
+! Qx = 0.15095 + -1.02664*x + -372.27359*x^2
+Qx0 := 0.15095;
+Qx1 := -1.02664;
+Qx2 := -372.27359;
+
+! Qy = 0.25136 + 0.38814*x + 152.03807*x^2
+Qy0 := 0.25136;
+Qy1 := 0.38814;
+Qy2 := 152.03807;
+
+! During the measurements a delta of dI_W8L = 10A has been applied to separate the tunes.
+! dQ * (-1) has to be added to MQi0 to correct for this effect.
+dQx = -0.006173162;
+dQy =  0.005986702;
+
+use, sequence=PS;
+match,use_macro;
+        vary, name = K1_F;
+        vary, name = K1_D;
+        vary, name = K2_F;
+        vary, name = K2_D;
+        vary, name = MPK3_F;
+        vary, name = MPK3_D;
+        use_macro, name = ptc_chrom_macro;
+        constraint, expr = qx0 = 1*Qx0 - dQx;
+        constraint, expr = qy0 = 1*Qy0 - dQy;
+        constraint, expr = qx1 = 1*Qx1;        
+        constraint, expr = qy1 = 1*Qy1;        
+        constraint, expr = qx2 = 2*Qx2;
+        constraint, expr = qy2 = 2*Qy2;
+jacobian,calls=50000,bisec=3;
+ENDMATCH;
+
+assign, echo="./ps_bef_ext_ad_matching.dat";
+value, K1_F, K1_D;
+value, K2_F, K2_D;
+value, MPK2, MPK2_J;
+value, MPK3_F, MPK3_D;
+Assign, echo=terminal;
+
+stop;
+
+
+/******************************************************************
+ * Non-linear chromaticity 
+ ******************************************************************/
+
+use, sequence=PS;
+
+PTC_twiss(dp0) : macro={
+        ptc_create_universe;
+        ptc_create_layout, time=false, model=2, exact=true, method=6, nst=5;
+        ptc_twiss, closed_orbit, icase=56, no=4, deltap=dp0, table;
+        }
+
+create, table=mytable, column = dp0, qx, qy;
+
+qx := table(ptc_twiss_summary, q1);
+qy := table(ptc_twiss_summary, q2);
+
+dp0 = -0.01;
+dp0_max = 0.011;
+
+while (dp0 <= dp0_max){
+        exec, PTC_twiss(dp0);
+        fill, table = mytable; write, table=mytable, file = './ps_bef_ext_ad_chromaticity_summary.out';
+        dp0 = dp0 + 0.001;
+}
+
+
+stop;
+
+
+

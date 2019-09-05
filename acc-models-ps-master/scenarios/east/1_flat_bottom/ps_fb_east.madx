@@ -1,0 +1,71 @@
+/**********************************************************************************
+*
+* MAD-X input script for the flat bottom optics of the EAST cycle.
+* 20/08/2019 - Alexander Huschauer
+************************************************************************************/
+ 
+/******************************************************************
+ * Energy and particle type definition
+ ******************************************************************/
+
+BEAM, PARTICLE=PROTON, PC = 2.14;
+BRHO      := BEAM->PC * 3.3356;
+
+/******************************************************************
+ * Call lattice files
+ ******************************************************************/
+
+call, file="../../../ps_mu.seq";
+call, file="../../../ps_ss.seq";
+call, file="../../../ps.str";
+call, file="./ps_fb_east.str";
+call, file="../../../macros.ptc";
+
+/******************************************************************
+ * PTC Twiss
+ ******************************************************************/
+
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4, file = './ps_fb_east.tfs';
+ptc_end;
+
+stop;
+
+! obtain smooth optics functions by slicing the elements
+use, sequence=PS;
+select, flag=ptc_twiss, column=name,keyword,s,x,px,y,py,t,pt,beta11,alfa11,beta22,alfa22,disp1,disp,disp3,disp4,gamma11,gamma22,mu1,mu2,energy,l,angle,K0L,K0SL,K1L,K1SL,K2L,K2SL,K3L,K3SL,K4L,K4SL,K5L,K5SL,VKICK,HKICK,SLOT_ID;
+ptc_create_universe;
+ptc_create_layout, model=2, method=6, nst=5, exact=true,;
+ptc_twiss,closed_orbit,icase=56,no=4,slice_magnets=true, file = './ps_fb_east_interpolated.tfs';
+ptc_end;
+
+/******************************************************************
+ *                       Tune matching
+ *
+ *    Values based on non-linear chromaticity measurement along  
+ *                the cycle recorded on 04.11.2018
+ ******************************************************************/
+
+! Qx = 0.19208 + -4.86003*x
+Qx := 0.19208;
+
+! Qy = 0.29439 + -6.96618*x
+Qy := 0.29439;
+
+use, sequence=PS;
+match,use_macro;
+        vary, name = kf;
+        vary, name = kd;
+        use_macro, name = ptc_twiss_tune_macro;
+        constraint, expr = table(ptc_twiss_summary,Q1) = Qx;
+        constraint, expr = table(ptc_twiss_summary,Q2) = Qy;
+jacobian,calls=50000,bisec=3;
+ENDMATCH;
+
+assign, echo="./ps_fb_east_matching.dat";
+value, kf, kd;
+Assign, echo=terminal;
+

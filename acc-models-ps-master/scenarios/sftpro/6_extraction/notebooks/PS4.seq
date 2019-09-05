@@ -1,0 +1,14 @@
+/******************************************************************
+ * Define fourfold PS sequence for Twiss in the islands
+ ******************************************************************/
+
+use, sequence = PS;
+twiss;
+PSL = table(summ, length);
+
+PS4: SEQUENCE, L = 4*PSL, refer = entry;
+PS, at = 0.0;
+PS, at = PSL;
+PS, at = 2*PSL;
+PS, at = 3*PSL;
+ENDSEQUENCE;

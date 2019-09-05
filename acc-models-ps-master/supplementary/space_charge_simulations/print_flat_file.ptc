@@ -1,0 +1,7 @@
+SELECTLAYOUT
+1
+LMAX
+0.5
+PRINT FLAT FILE
+flat_file.flt
+return
