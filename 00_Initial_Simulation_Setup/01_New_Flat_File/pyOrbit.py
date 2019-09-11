@@ -107,7 +107,11 @@ Lattice.readPTC(PTC_File)
 
 readScriptPTC_noSTDOUT('PTC/fringe.ptc')
 readScriptPTC_noSTDOUT('PTC/time.ptc')
-readScriptPTC_noSTDOUT('PTC/ramp_cavities.ptc')
+
+if s['UseOptimisedFlatFile']:
+	readScriptPTC_noSTDOUT('PTC/ramp_cavities_optimised.ptc')
+else:
+	readScriptPTC_noSTDOUT('PTC/ramp_cavities.ptc')
 
 # Create a dictionary of parameters
 #-----------------------------------------------------------------------
