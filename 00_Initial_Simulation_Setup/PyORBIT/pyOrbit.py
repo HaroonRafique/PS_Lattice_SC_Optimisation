@@ -76,9 +76,9 @@ else:
 # Generate Lattice (MADX + PTC) - Use MPI to run on only one 'process'
 #-----------------------------------------------------------------------
 print '\nStart MADX on MPI process: ', rank
-if not rank:
-	os.system("/afs/cern.ch/eng/sl/MAD-X/pro/releases/5.02.00/madx-linux64 < Flat_file.madx")
-orbit_mpi.MPI_Barrier(comm)
+# ~ if not rank:
+	# ~ os.system("/afs/cern.ch/eng/sl/MAD-X/pro/releases/5.02.00/madx-linux64 < Flat_file.madx")
+# ~ orbit_mpi.MPI_Barrier(comm)
 
 # Print Tunespread data
 #-----------------------------------------------------------------------
@@ -101,7 +101,7 @@ print '\nstart PTC Flat file on MPI process: ', rank
 if s['UseOptimisedFlatFile']:
 	PTC_File = "Flat_Files/Optimised_flat_file.flt"
 else:
-	PTC_File = "PTC-PyORBIT_flat_file.flt"
+	PTC_File = "Flat_Files/PTC-PyORBIT_flat_file.flt"
 Lattice = PTC_Lattice("PS")
 Lattice.readPTC(PTC_File)
 
