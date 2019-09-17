@@ -21,8 +21,8 @@ dpp_rms = 8.7e-04
 rf_voltage = 0.0212942055190595723
 
 # Simulation Parameters
-n_macroparticles = int(1)
-turns_max = int(1E3)
+n_macroparticles = int(0.5E6)
+turns_max = int(2200)
 tu1 = range(-1, turns_max, 200)
 tu2 = range(10, 100, 10) 
 tu3 = range(1, 9)
@@ -30,7 +30,7 @@ tu = tu2 + tu1 + tu3
 tu.append(874) # WS 172s
 tu.append(2185)# WS 175s
 
-turns_print = sorted(tu)
+turns_print = [874, 2185]
 turns_update = sorted(tu)
 macrosize = intensity/float(n_macroparticles)
 
