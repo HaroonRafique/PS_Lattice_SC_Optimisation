@@ -3,7 +3,7 @@ import numpy as np
 tomo_file = 'PyORBIT_Tomo_file_MD4224_HB.mat'
 input_distn_dir = 'V_610_Matched_Distn.mat'
 
-Use_Optimised_Flat_File = False
+Use_Optimised_Flat_File = True
 
 # PS Injection 1.4 GeV
 gamma = 2.49253731343

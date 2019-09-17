@@ -2,7 +2,6 @@
 # execute like: . setup_environment.sh
 
 pyOrbit_dir=/afs/cern.ch/user/p/pyorbit/public/PyOrbit_env/py-orbit
-# pyOrbit_dir=/afs/cern.ch/user/p/pyorbit/public/PyOrbit_env/py-orbit_slicebyslice_longitudinal_kick
 
 source ${pyOrbit_dir}/customEnvironment.sh
 echo "customEnvironment done"
