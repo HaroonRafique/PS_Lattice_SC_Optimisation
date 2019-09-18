@@ -2,15 +2,15 @@
 #SBATCH --job-name=LO_00
 #SBATCH --output=slurm.%N.%j.out
 #SBATCH --error=slurm.%N.%j.err
-#SBATCH --partition=inf-short
-#SBATCH --time=5-00:00:00
-#SBATCH --nodes=1
+#SBATCH --partition=batch-long
+#SBATCH --time=21-00:00:00
+#SBATCH --nodes=4
 #SBATCH --mem-per-cpu=3200M
 #SBATCH --exclusive
 #SBATCH --hint=nomultithread
 
 BATCH_ROOT_DIR=/hpcscratch/user/harafiqu
-RUN_DIR=/hpcscratch/user/harafiqu/PS_Lattice_SC_Optimisation/00_Initial_Simulation_Setup/PyORBIT
+RUN_DIR=/hpcscratch/user/harafiqu/PS_Lattice_SC_Optimisation/00_Initial_Simulation_Setup/00_Original_Lattice_Tracking
 OrigIwd=$(pwd)
 
 # Make an output folder in the root directory to hold SLURM info file
