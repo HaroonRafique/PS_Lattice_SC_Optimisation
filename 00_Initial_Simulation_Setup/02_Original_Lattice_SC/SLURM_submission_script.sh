@@ -2,9 +2,10 @@
 #SBATCH --job-name=LO_02
 #SBATCH --output=slurm.%N.%j.out
 #SBATCH --error=slurm.%N.%j.err
-#SBATCH --partition=inf-long
-#SBATCH --time=21-00:00:00
 #SBATCH --nodes=4
+#SBATCH --ntasks-per-node=20
+#SBATCH --partition=inf-short
+#SBATCH --time=120:00:00
 #SBATCH --mem-per-cpu=3200M
 #SBATCH --exclusive
 #SBATCH --hint=nomultithread

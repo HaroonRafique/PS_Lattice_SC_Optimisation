@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=LO_BT_05
+#SBATCH --job-name=LO_SC_05
 #SBATCH --output=slurm.%N.%j.out
 #SBATCH --error=slurm.%N.%j.err
-#SBATCH --partition=inf-long
-#SBATCH --time=21-00:00:00
 #SBATCH --nodes=5
+#SBATCH --ntasks-per-node=20
+#SBATCH --partition=inf-long
+#SBATCH --time=504:00:00
 #SBATCH --mem-per-cpu=3200M
 #SBATCH --exclusive
 #SBATCH --hint=nomultithread
