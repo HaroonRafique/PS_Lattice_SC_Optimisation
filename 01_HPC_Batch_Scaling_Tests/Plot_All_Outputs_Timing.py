@@ -75,7 +75,7 @@ def plot_turn_time(sc, dd, filename):
 	
 # Create dd dictionary
 dd = dict()
-dd = add_input_file(dd, './01_Original_Lattice_Tracking/output/output.mat', '1 Original')
+# ~ dd = add_input_file(dd, './01_Original_Lattice_Tracking/output/output.mat', '1 Original')
 dd = add_input_file(dd, './02_Original_Lattice_Tracking/output/output.mat', '2 Original')
 dd = add_input_file(dd, './03_Original_Lattice_Tracking/output/output.mat', '3 Original')
 dd = add_input_file(dd, './04_Original_Lattice_Tracking/output/output.mat', '4 Original')
