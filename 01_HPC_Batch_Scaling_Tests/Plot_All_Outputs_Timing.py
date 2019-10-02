@@ -70,7 +70,7 @@ def plot_turn_time(sc, dd, filename):
 	custom_lines = [Line2D([0], [0], color='k', lw=4), Line2D([0], [0], color='r', lw=4)]
 	ax1.legend(custom_lines, ['Original', 'Optimised'], title='Case')
 
-	ax1.set_ylabel('Time [s]');
+	ax1.set_ylabel('Time per turn [s]');
 	ax1.set_xlabel('HPC-Batch Nodes [-] (20 cores per node)');
 	ax1.grid(True);
 	
