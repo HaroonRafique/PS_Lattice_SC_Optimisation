@@ -44,25 +44,39 @@ def plot_turn_time(sc, dd, filename):
 	fig1 = plt.figure(facecolor='w', edgecolor='k')
 	ax1 = fig1.add_subplot(111)
 
-	colors = cm.rainbow(np.linspace(0, 1, len(dd.keys())))
-	c_it = int(0)
+	# ~ colors = cm.rainbow(np.linspace(0, 1, len(dd.keys())))
+	# ~ c_it = int(0)
+	
+	all_nodes = []
 
 	for key, value in sorted(dd.iteritems()):
+
 		# To get the number of nodes we have a naming convention in the dictionary label
 		nodes = int(key.split()[0])
-		ax1.plot(nodes, np.mean(dd[key]['turn_duration'][0]), label=key, color=colors[c_it]);
-		c_it = c_it + 1
+		all_nodes.append(nodes)
 
-	ax1.set_ylabel('Time [s]');
-	ax1.set_xlabel('Nodes [-]');
+		print '\n\tCase: ', key, ' <turn duration> = ', np.mean(dd[key]['turn_duration'][0])
+		if 'Optimised' in key:
+			col = 'r'
+		if 'Original' in key:
+			col = 'k'
+		ax1.scatter(nodes, np.mean(dd[key]['turn_duration'][0]), label=key, color=col);
+		# ~ c_it = c_it + 1
+		
+	final_nodes = np.unique(all_nodes, axis=0)
+	
+	ax1.set_xticks(final_nodes)
+
+	custom_lines = [Line2D([0], [0], color='k', lw=4), Line2D([0], [0], color='r', lw=4)]
+	ax1.legend(custom_lines, ['Original', 'Optimised'], title='Case')
+
+	ax1.set_ylabel('Time per turn [s]');
+	ax1.set_xlabel('HPC-Batch Nodes [-] (20 cores per node)');
 	ax1.grid(True);
+	
+	ax1.set_title('PS 2200 turns, no space charge, tracking only')
 
-	figname = figname + '.png'
-
-	if legend_label is not None: 
-		ax1.legend(title=legend_label)
-	else:
-		ax1.legend()
+	figname = filename + '.png'
 
 	fig1.savefig(figname);
 	plt.close()
@@ -75,7 +89,7 @@ def plot_turn_time(sc, dd, filename):
 	
 # Create dd dictionary
 dd = dict()
-# ~ dd = add_input_file(dd, './01_Original_Lattice_Tracking/output/output.mat', '1 Original')
+dd = add_input_file(dd, './01_Original_Lattice_Tracking/output/output.mat', '1 Original')
 dd = add_input_file(dd, './02_Original_Lattice_Tracking/output/output.mat', '2 Original')
 dd = add_input_file(dd, './03_Original_Lattice_Tracking/output/output.mat', '3 Original')
 dd = add_input_file(dd, './04_Original_Lattice_Tracking/output/output.mat', '4 Original')
