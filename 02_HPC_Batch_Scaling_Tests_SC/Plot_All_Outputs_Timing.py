@@ -74,7 +74,7 @@ def plot_turn_time(sc, dd, filename):
 	ax1.set_xlabel('HPC-Batch Nodes [-] (20 cores per node)');
 	ax1.grid(True);
 	
-	ax1.set_title('PS 2200 turns, no space charge, tracking only')
+	ax1.set_title('PS 2200 turns, with space charge')
 
 	figname = filename + '.png'
 
@@ -96,7 +96,7 @@ dd = add_input_file(dd, './04_Original_Lattice_Tracking/output/output.mat', '4 O
 dd = add_input_file(dd, './05_Original_Lattice_Tracking/output/output.mat', '5 Original')
 dd = add_input_file(dd, './11_New_Lattice_Tracking/output/output.mat', '1 Optimised')
 dd = add_input_file(dd, './12_New_Lattice_Tracking/output/output.mat', '2 Optimised')
-dd = add_input_file(dd, './13_New_Lattice_Tracking/output/output.mat', '3 Optimised')
+# ~ dd = add_input_file(dd, './13_New_Lattice_Tracking/output/output.mat', '3 Optimised')
 dd = add_input_file(dd, './14_New_Lattice_Tracking/output/output.mat', '4 Optimised')
 dd = add_input_file(dd, './15_New_Lattice_Tracking/output/output.mat', '5 Optimised')
 print 'Final data dictionary keys: ', dd.keys()
