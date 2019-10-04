@@ -87,7 +87,7 @@ tunespread = {
 
 switches = {
 	'Qy': Qy,
-	'SliceBySlice': True,
+	'SliceBySlice': False,
 	'CreateDistn': False,
 	'ImportFromTomo': False,
 	'LongitudinalKick': True,
